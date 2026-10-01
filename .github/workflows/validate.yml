@@ -1,0 +1,28 @@
+name: Validate public configuration
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install validators
+        run: sudo apt-get update && sudo apt-get install -y python3-yaml shellcheck dnsmasq-base
+      - name: Public tree and policy tests
+        run: |
+          python3 tools/validate.py
+          python3 -m unittest discover -s tests -v
+          shellcheck tools/*.sh
+          docker compose --env-file .env.example config --quiet
+          systemd-analyze verify --man=no networking/systemd/* tools/camper-metrics.service tools/camper-metrics.timer
+      - name: Pinned BLUETTI patch behaviour
+        run: |
+          git clone --depth 1 --branch v1.0.5 https://github.com/bluetti-official/bluetti-home-assistant.git "$RUNNER_TEMP/bluetti-source"
+          test "$(git -C "$RUNNER_TEMP/bluetti-source" rev-parse HEAD)" = f1df72b9642ebb60cb1c56100f2ad3c3a5b60157
+          BLUETTI_SOURCE="$RUNNER_TEMP/bluetti-source/custom_components/bluetti" python3 -m unittest discover -s tests -p test_bluetti_patch.py -v
+      - name: Home Assistant configuration schemas
+        run: |
+          cp -r homeassistant "$RUNNER_TEMP/ha-config"
+          cp homeassistant/secrets.example.yaml "$RUNNER_TEMP/ha-config/secrets.yaml"
+          docker run --rm --platform linux/amd64 -v "$RUNNER_TEMP/ha-config:/config" ghcr.io/home-assistant/home-assistant:2026.9.4 python -m homeassistant --script check_config --config /config
