@@ -1,0 +1,9 @@
+[Unit]
+Description=Camper host/container metrics
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/camper-ha/metrics.py
+TimeoutStartSec=30
+UMask=0022

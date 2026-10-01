@@ -1,0 +1,13 @@
+{
+  "interface": "wlan0",
+  "starlink_ssid": "EXAMPLE-STARLINK-2G",
+  "starlink_password": "REPLACE-WITH-YOUR-STARLINK-PASSWORD",
+  "ap_ssid": "Camper-HA",
+  "ap_password": "REPLACE-WITH-A-PRIVATE-AP-PASSWORD",
+  "ap_channel": 6,
+  "probe_interval": 600,
+  "maximum_backoff": 3600,
+  "stability_seconds": 30,
+  "loss_seconds": 60,
+  "tick_seconds": 15
+}

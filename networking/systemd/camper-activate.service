@@ -1,0 +1,13 @@
+[Unit]
+Description=Apply camper radio ownership after boot, before controller
+Before=camper-network.service
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/camper-ha/provision.py --activate
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

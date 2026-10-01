@@ -1,0 +1,13 @@
+[Unit]
+Description=DHCP-only local camper WLAN (no Internet gateway)
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --conf-file=/etc/camper-ha/dnsmasq.conf --pid-file=
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,47 @@
+# Intentionally selected integrations instead of default_config on a 512 MB Pi.
+homeassistant:
+  name: Camper
+  time_zone: !secret time_zone
+  unit_system: metric
+  # Locations/person tracking are not part of this system.
+frontend:
+config:
+api:
+http:
+websocket_api:
+mobile_app:
+bluetooth:
+zeroconf:
+history:
+recorder:
+  purge_keep_days: 7
+  commit_interval: 30
+  auto_purge: true
+  auto_repack: true
+  include:
+    domains: [sensor, binary_sensor, switch]
+  exclude:
+    entity_globs: ['sensor.*_rssi', 'sensor.*_link_quality', 'sensor.*_signal_strength']
+logger:
+  default: warning
+automation: !include automations.yaml
+script: !include scripts.yaml
+template: !include_dir_merge_list templates/
+command_line:
+  - sensor:
+      name: Camper host memory
+      unique_id: camper_host_memory
+      command: cat /host-status/metrics.json
+      scan_interval: 60
+      unit_of_measurement: '%'
+      value_template: '{{ value_json.memory_percent }}'
+      json_attributes: [load_per_core, disk_percent, cpu_temperature, ha_health, sampled_at]
+lovelace:
+  mode: storage
+  dashboards:
+    camper-dashboard:
+      mode: yaml
+      title: Camper
+      icon: mdi:van-utility
+      show_in_sidebar: true
+      filename: dashboards/camper.yaml

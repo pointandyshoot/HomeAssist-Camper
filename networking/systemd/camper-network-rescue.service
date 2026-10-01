@@ -1,0 +1,8 @@
+[Unit]
+Description=Recover local AP if camper controller is not running
+After=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/camper-ha/controller.py --rescue
+TimeoutStartSec=90

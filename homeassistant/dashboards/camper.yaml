@@ -1,0 +1,110 @@
+title: Camper
+views:
+  - title: Camper
+    path: camper
+    icon: mdi:van-utility
+    cards:
+      - type: markdown
+        content: >-
+          ## Camper
+          Live data and history work locally. Unavailable values need pairing,
+          verified entity mapping or device support. Never interpret unavailable as zero.
+      - type: entities
+        title: BLUETTI
+        show_header_toggle: false
+        entities:
+          - entity: sensor.camper_bluetti_soc
+            name: Battery SOC
+          - entity: sensor.camper_bluetti_net_power
+            name: Net input minus output (W)
+          - entity: sensor.camper_bluetti_dc_input
+            name: DC input (solar or vehicle)
+          - entity: sensor.camper_bluetti_ac_input
+            name: AC input
+          - entity: sensor.camper_bluetti_ac_output
+            name: AC output
+          - entity: sensor.camper_bluetti_dc_output
+            name: DC output
+          - entity: sensor.camper_bluetti_runtime
+            name: Remaining discharge time
+          - entity: sensor.camper_bluetti_charge_time
+            name: Remaining charge time
+      - type: horizontal-stack
+        cards:
+          - type: button
+            entity: switch.camper_bluetti_ac
+            name: AC output
+            tap_action:
+              action: toggle
+              confirmation:
+                text: Change AC output power?
+          - type: button
+            entity: switch.camper_bluetti_dc
+            name: DC output
+            tap_action:
+              action: toggle
+              confirmation:
+                text: Change DC output power? Check that the Pi has independent power.
+      - type: history-graph
+        title: Battery SOC — 12 h
+        hours_to_show: 12
+        entities: [sensor.camper_bluetti_soc, sensor.camper_smartbat_soc]
+      - type: history-graph
+        title: Power — 6 h
+        hours_to_show: 6
+        entities: [sensor.camper_bluetti_dc_input, sensor.camper_bluetti_ac_output, sensor.camper_bluetti_dc_output]
+      - type: entities
+        title: SmartBat (read-only)
+        show_header_toggle: false
+        entities:
+          - sensor.camper_smartbat_soc
+          - sensor.camper_smartbat_voltage
+          - sensor.camper_smartbat_current
+          - sensor.camper_smartbat_power
+          - sensor.camper_smartbat_temperature
+          - sensor.camper_smartbat_trend
+          - sensor.camper_smartbat_cycles
+          - sensor.camper_smartbat_capacity
+      - type: markdown
+        title: Cell spread
+        content: >-
+          SmartBat **type A** currently has no upstream cell-voltage readout.
+          Do not infer cell balance from pack voltage. If a future verified driver
+          supplies cells, add its delta sensor here (see SMARTBAT.md).
+      - type: entities
+        title: Environment
+        show_header_toggle: false
+        entities:
+          - sensor.camper_co2
+          - sensor.camper_temperature
+          - sensor.camper_humidity
+          - sensor.camper_pressure
+          - sensor.camper_aranet_battery
+      - type: history-graph
+        title: CO₂ overnight — 12 h
+        hours_to_show: 12
+        entities: [sensor.camper_co2]
+      - type: markdown
+        title: Fridge and freezer — future
+        content: >-
+          Add verified rtl_433 entities `sensor.camper_fridge_temperature` and
+          `sensor.camper_freezer_temperature` here, then a 12 h history graph.
+          No receiver or MQTT service is started in this version.
+  - title: Pi health
+    path: health
+    icon: mdi:raspberry-pi
+    cards:
+      - type: entities
+        title: Resources
+        entities:
+          - sensor.camper_host_memory
+          - sensor.camper_cpu_load
+          - sensor.camper_disk_used
+          - sensor.camper_cpu_temperature
+          - binary_sensor.camper_ha_healthy
+      - type: markdown
+        content: >-
+          Metrics refresh each minute. CPU load is the 1-minute load average
+          divided by CPU count (not CPU utilisation). Check zram, OOM and container
+          restarts using `sudo tools/health.sh` over SSH. Docker health reports do
+          not automatically restart an unhealthy HA container.

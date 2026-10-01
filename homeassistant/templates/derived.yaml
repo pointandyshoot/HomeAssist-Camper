@@ -1,0 +1,46 @@
+- sensor:
+    - name: Camper Bluetti net power
+      unique_id: camper_bluetti_net_power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      availability: >-
+        {{ is_number(states('sensor.camper_bluetti_ac_input')) and
+           is_number(states('sensor.camper_bluetti_dc_input')) and
+           is_number(states('sensor.camper_bluetti_ac_output')) and
+           is_number(states('sensor.camper_bluetti_dc_output')) }}
+      state: >-
+        {{ (states('sensor.camper_bluetti_ac_input') | float(0) +
+            states('sensor.camper_bluetti_dc_input') | float(0) -
+            states('sensor.camper_bluetti_ac_output') | float(0) -
+            states('sensor.camper_bluetti_dc_output') | float(0)) | round(1) }}
+    - name: Camper Smartbat trend
+      unique_id: camper_smartbat_trend
+      availability: "{{ is_number(states('sensor.camper_smartbat_current')) }}"
+      state: >-
+        {% set current = states('sensor.camper_smartbat_current') | float(0) %}
+        {{ 'Charging' if current > 0.2 else 'Discharging' if current < -0.2 else 'Idle' }}
+    - name: Camper CPU load
+      unique_id: camper_cpu_load
+      state_class: measurement
+      availability: "{{ state_attr('sensor.camper_host_memory', 'load_per_core') is number }}"
+      state: "{{ state_attr('sensor.camper_host_memory', 'load_per_core') }}"
+    - name: Camper disk used
+      unique_id: camper_disk_used
+      unit_of_measurement: '%'
+      state_class: measurement
+      availability: "{{ state_attr('sensor.camper_host_memory', 'disk_percent') is number }}"
+      state: "{{ state_attr('sensor.camper_host_memory', 'disk_percent') }}"
+    - name: Camper CPU temperature
+      unique_id: camper_cpu_temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      availability: "{{ state_attr('sensor.camper_host_memory', 'cpu_temperature') is number }}"
+      state: "{{ state_attr('sensor.camper_host_memory', 'cpu_temperature') }}"
+  binary_sensor:
+    - name: Camper HA healthy
+      unique_id: camper_ha_healthy
+      device_class: connectivity
+      availability: "{{ state_attr('sensor.camper_host_memory', 'ha_health') is not none }}"
+      state: "{{ state_attr('sensor.camper_host_memory', 'ha_health') == 'healthy' }}"
