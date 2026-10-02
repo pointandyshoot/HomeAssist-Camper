@@ -51,7 +51,23 @@ On the Pi: back up first, stop HA, move the existing component to a private dire
 
 `git pull --ff-only` updates the public templates/tools, not runtime YAML/secrets. Compare files, back up, copy selected non-secret changes to `/opt/camper-ha/config` and run HA's checker. Rerun bootstrap only to deploy reviewed host scripts/units; it intentionally preserves existing runtime YAML/Compose/.env and custom integrations. Copy a revised Compose file deliberately after backup.
 
-Network/controller updates must preserve AP/STA UUIDs or explicitly migrate keyfiles. After copying reviewed services/scripts, `sudo systemctl daemon-reload` and restart the controller; this briefly drops network access and returns to AP dwell.
+Network/controller updates must preserve AP/STA UUIDs or explicitly migrate keyfiles. After copying reviewed services/scripts, `sudo systemctl daemon-reload` and restart the controller; stopping restores AP, then the new controller immediately tries Starlink. This can briefly drop network access.
+
+### Immediate Starlink startup update
+
+An older controller always starts the AP and waits 10 minutes. Update just the controller and its unit from the repository checkout (not `/opt/camper-ha`):
+
+```sh
+git pull --ff-only
+sudo cp -n /usr/local/lib/camper-ha/controller.py /etc/camper-ha/controller.py.before-starlink-first
+sudo cp -n /etc/systemd/system/camper-network.service /etc/camper-ha/camper-network.service.before-starlink-first
+sudo install -m 0644 networking/scripts/controller.py /usr/local/lib/camper-ha/controller.py
+sudo install -m 0644 networking/systemd/camper-network.service /etc/systemd/system/camper-network.service
+sudo systemctl daemon-reload
+sudo reboot
+```
+
+Reboot with Starlink on to test immediate selection, then test a boot with Starlink off for AP fallback. This update preserves credentials, profile UUIDs, private retry timing, HA configuration/history, integrations and the running container image. No full bootstrap or container recreation is needed. To roll back, restore the two `.before-starlink-first` copies to their original paths, reload systemd and reboot. The backup commands preserve already-existing backup copies.
 
 ## Rollback
 

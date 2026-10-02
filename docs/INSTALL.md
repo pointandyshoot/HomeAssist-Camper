@@ -35,7 +35,7 @@ Existing `/opt/camper-ha/.env`, HA YAML, secrets and `/etc/camper-ha/network.jso
 
 Allow up to 10 minutes on this small Pi. On `Camper-HA`, open `http://192.168.42.1:8123`. On Starlink, try `http://homeassistant.local:8123`, or find the Pi's DHCP address in the router/Starlink device list. Create the HA owner account locally. Do not configure cloud remote access for basic operation. Browser HTTP is local; WLAN encryption protects the radio link but local LAN clients can reach HA, so use a strong HA password.
 
-The controller's first Starlink trial is 10 minutes after boot. If needed, from AP-connected SSH run `sudo systemctl restart camper-network.service` to restart its AP dwell; for an immediate supervised trial, temporarily set a shorter **valid** probe interval (minimum 300 s) in `/etc/camper-ha/network.json`, then restore 600 s after commissioning. There is no requirement for Internet to be established on Starlink, only its LAN.
+The controller tries Starlink immediately at boot. It requires DHCP/router access stable for 30 seconds, then stays on Starlink; Internet is not required. If association or stability fails, it creates Camper-HA and retries after 10 minutes, with backoff for subsequent failures. A controller restart also makes an immediate bounded Starlink trial. See NETWORKING.md for timing/recovery and UPDATES.md for updating an older installation.
 
 In Settings → Devices & services:
 

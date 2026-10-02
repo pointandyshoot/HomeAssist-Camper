@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'networking/scripts'))
-from controller import AP, STA, Controller, Network, command, read_config
+from controller import AP, STA, Controller, Network, command, main, read_config
 from provision import profiles, dhcp_config, write_private
 
 
@@ -48,10 +48,23 @@ class Tests(unittest.TestCase):
     def advance(self, seconds):
         self.now += seconds
 
-    def test_boot_fallback_and_dwell(self):
-        self.controller.fallback()
+    def test_boot_without_starlink_falls_back_and_dwells(self):
+        self.assertFalse(self.controller.startup())
         self.controller.step()
-        self.assertEqual(self.network.calls, [AP])
+        self.assertEqual(self.network.calls, [STA, AP])
+        self.assertEqual(self.controller.next_probe, 600)
+
+    def test_boot_with_starlink_does_not_activate_ap(self):
+        self.network.association = self.network.reachable = True
+        self.assertTrue(self.controller.startup())
+        self.assertEqual(self.network.calls, [STA])
+        self.assertEqual(self.controller.state, 'STARLINK')
+        self.assertGreaterEqual(self.now, 30)
+
+    def test_boot_association_without_gateway_restores_ap(self):
+        self.network.association = True
+        self.assertFalse(self.controller.startup())
+        self.assertEqual(self.network.calls, [STA, AP])
         self.assertEqual(self.controller.next_probe, 600)
 
     def test_failed_association_restores_ap_backoff(self):
@@ -114,9 +127,54 @@ class Tests(unittest.TestCase):
         self.controller.step()
         self.assertEqual(self.controller.state, 'STARLINK')
 
-    def test_reboot_while_connected_restores_ap(self):
+    def test_restart_while_connected_preserves_starlink(self):
         self.network.current = STA
-        self.controller.fallback()
+        self.network.reachable = True
+        self.assertTrue(self.controller.startup())
+        self.assertEqual(self.network.calls, [])
+        self.assertEqual(self.network.current, STA)
+        self.assertGreaterEqual(self.now, 30)
+
+    def test_restart_on_broken_starlink_restores_ap(self):
+        self.network.current = STA
+        self.assertFalse(self.controller.startup())
+        self.assertEqual(self.network.calls, [AP])
+        self.assertEqual(self.network.current, AP)
+
+    def test_boot_brief_starlink_connection_does_not_promote(self):
+        self.network.association = self.network.reachable = True
+        def drop(seconds):
+            self.advance(seconds)
+            self.network.reachable = False
+        self.controller.sleep = drop
+        self.assertFalse(self.controller.startup())
+        self.assertEqual(self.network.current, AP)
+        self.assertEqual(self.controller.backoff, 600)
+
+    def test_ready_notifies_only_after_initial_network_selection(self):
+        events = []
+        self.controller.heartbeat = events.append
+        with patch.object(self.controller, 'step', side_effect=StopIteration):
+            with self.assertRaises(StopIteration):
+                self.controller.run()
+        self.assertEqual(self.network.current, AP)
+        self.assertEqual(events[-1], 'READY=1')
+
+    def test_rescue_leaves_starting_controller_alone(self):
+        for state in ('active', 'activating', 'reloading'):
+            with self.subTest(state=state), patch('controller.read_config', return_value=self.cfg), \
+                    patch('controller.Network', return_value=self.network), \
+                    patch('controller.command', return_value=(True, state)), \
+                    patch('sys.argv', ['controller.py', '--rescue']):
+                main()
+                self.assertEqual(self.network.calls, [])
+
+    def test_rescue_recovers_failed_controller(self):
+        with patch('controller.read_config', return_value=self.cfg), \
+                patch('controller.Network', return_value=self.network), \
+                patch('controller.command', return_value=(True, 'failed')), \
+                patch('sys.argv', ['controller.py', '--rescue']):
+            main()
         self.assertEqual(self.network.current, AP)
 
     def test_failed_ap_is_retried(self):

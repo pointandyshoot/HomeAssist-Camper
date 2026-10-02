@@ -125,10 +125,13 @@ class Controller:
             return False
         return True
 
-    def trial(self):
+    def trial(self, *, startup=False):
         LOG.info("Bounded Starlink association trial; local AP temporarily unavailable")
         self.heartbeat("WATCHDOG=1")
-        if self.network.up(STA):
+        # A controller restart must not tear down an already-associated Starlink
+        # profile. It still has to pass the same local-LAN stability checks.
+        associated = startup and self.network.active() == STA
+        if associated or self.network.up(STA):
             deadline = self.clock() + self.cfg["stability_seconds"]
             while True:
                 self.heartbeat("WATCHDOG=1")
@@ -141,10 +144,17 @@ class Controller:
                     LOG.info("Starlink LAN confirmed stable")
                     return True
                 self.sleep(self.cfg["tick_seconds"])
-        self.backoff = min(self.backoff * 2, self.cfg["maximum_backoff"])
+        # A failed first boot attempt gets the normal AP dwell, not an immediate
+        # doubled delay. Subsequent failed trials retain exponential backoff.
+        if not startup:
+            self.backoff = min(self.backoff * 2, self.cfg["maximum_backoff"])
         self.heartbeat("WATCHDOG=1")
         self.fallback()
         return False
+
+    def startup(self):
+        LOG.info("Trying Starlink immediately at controller startup")
+        return self.trial(startup=True)
 
     def step(self):
         self.heartbeat("WATCHDOG=1")
@@ -162,7 +172,7 @@ class Controller:
                 self.fallback()
 
     def run(self):
-        self.fallback()  # Reboots and restarts always recover local access first.
+        self.startup()  # One bounded Starlink trial, then AP if it is unusable.
         self.heartbeat("READY=1")
         while True:
             self.step()
@@ -187,8 +197,11 @@ def main():
         cfg = {"interface": interface}
     network = Network(cfg["interface"])
     if args.rescue:
-        ok, _ = command("systemctl", "is-active", "--quiet", "camper-network.service")
-        if ok:
+        ok, state = command("systemctl", "show", "--property=ActiveState", "--value",
+                            "camper-network.service")
+        # Type=notify is 'activating' during the initial association/stability
+        # trial. The watchdog/start timeout bound it; don't race that trial.
+        if ok and state in ("active", "activating", "reloading"):
             return
         if network.active() == AP:
             return

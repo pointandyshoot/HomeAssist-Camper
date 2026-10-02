@@ -13,7 +13,8 @@ ExecStopPost=/usr/bin/python3 /usr/local/lib/camper-ha/controller.py --force-ap
 Restart=always
 RestartSec=15
 WatchdogSec=180
-TimeoutStartSec=90
+# Allow bounded association, configured stability dwell and AP recovery.
+TimeoutStartSec=360
 TimeoutStopSec=70
 KillMode=control-group
 OOMScoreAdjust=-500

@@ -40,7 +40,8 @@ Optional full upstream patch tests: fetch the exact v1.0.5 component into a temp
 - [ ] Starlink off at cold boot: AP visible, DHCP in `.20`–`.100`, HA/browser reachable at `.1:8123`, no DHCP default gateway/DNS/NAT. Phone stays connected.
 - [ ] Smartphone mobile Internet and local HA work together, or document phone-specific fallback. `.local` works on both LANs or direct-IP/app switching procedure is confirmed.
 - [ ] Starlink on: wait for trial; wrong password and DHCP/router failures return AP; correct LAN remains stable overnight. A brief SSID/radio appearance doesn't promote.
-- [ ] Starlink WAN outage with LAN up does not return AP. Power router off: debounced AP fallback is reachable. Reboot in each state recovers AP first.
+- [ ] Starlink already on at cold boot: immediate association attempt, stable local LAN selected without a 10-minute AP dwell. Restart on a healthy Starlink connection preserves that connection during validation. Measure real boot-to-access time.
+- [ ] Starlink WAN outage with LAN up does not return AP. Power router off: debounced AP fallback is reachable. Boot with router absent/wrong credentials/unusable DHCP or gateway: bounded trial returns AP, first retry after 10 minutes. Rescue timer does not interrupt startup; stuck startup still recovers through watchdog/start timeout.
 - [ ] Kill the controller during a trial: `ExecStopPost`/restart restore AP. Stop/fail the controller: independent rescue timer works. Deliberately corrupt only config (keeping NM AP profile) and confirm recovery; restore private config immediately.
 - [ ] All three BLE devices supply valid readings simultaneously. Compare known loads/readings against displays/meters; verify SmartBat current sign and type-A limitations.
 - [ ] BLUETTI native library imports on ARM64 and actual AC/DC controls work over BLE with no WAN. Pi has independent power for these tests.

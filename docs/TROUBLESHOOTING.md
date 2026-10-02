@@ -12,7 +12,7 @@ Check `camper-dhcp.service` and `/etc/camper-ha/dnsmasq.conf`. This dedicated dn
 
 ## Starlink trial never succeeds
 
-Verify 2.4 GHz WPA2 SSID/password privately, not in a public issue. A visible SSID is insufficient. The controller needs DHCP, default gateway and an ARP response stable for 30 s. Inspect local profile/network status; no WAN connection is required. Backoff can reach an hour after repeated failures. Restart the controller to reset dwell/backoff (AP returns, first trial 10 minutes later).
+Verify 2.4 GHz WPA2 SSID/password privately, not in a public issue. A visible SSID is insufficient. The controller needs DHCP, default gateway and an ARP response stable for 30 s. Inspect local profile/network status; no WAN connection is required. Boot/restart now makes an immediate trial; AP fallback then waits 10 minutes before retrying. Backoff can reach an hour after repeated later failures. Restart the controller to make a new immediate trial and reset backoff. Older deployed controllers that always wait 10 minutes at boot need the targeted update in UPDATES.md.
 
 ## Hostname/app fails but IP works
 
