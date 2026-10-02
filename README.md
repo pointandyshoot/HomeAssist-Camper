@@ -22,7 +22,8 @@ A reproducible local camper monitor for Raspberry Pi Zero 2 W, Raspberry Pi OS L
 
 3. Join `Camper-HA` with your chosen password. Open **http://192.168.42.1:8123** or **http://homeassistant.local:8123** and create your local HA account.
 4. With Internet available, commission BLUETTI in **Bluetooth Control** mode, native Aranet and BLE Battery Management System. Follow [INSTALL](docs/INSTALL.md), [BLUETTI](docs/BLUETTI.md), [ARANET](docs/ARANET.md) and [SMARTBAT](docs/SMARTBAT.md).
-5. Rename verified integration entities to the dashboard's generic IDs; absent/unsupported sensors remain unavailable. Run the offline reboot test.
+5. Rename verified integration entities to the dashboard's generic IDs; absent/unsupported sensors remain unavailable. The Camper dashboard is the default at `/lovelace`.
+6. Optionally pair the dedicated T1000-E over BLE and privately authorise your two portable radios: [MESHTASTIC](docs/MESHTASTIC.md). Mesh status, confirmed AC commands, camper GPS and repeat encounters work locally. Run the offline reboot test.
 
 The installer preserves existing local files and runs downloads while the initial SSH network is still connected. Network switching starts **after reboot**. Never put real credentials or identifiers in tracked files.
 
@@ -32,8 +33,9 @@ The installer preserves existing local files and runs downloads while the initia
 * Host BlueZ/D-Bus, NetworkManager, Avahi and DHCP-only dnsmasq.
 * A bounded Python network controller supervised by systemd, plus an independent rescue timer.
 * Official BLUETTI v1.0.5 with small [offline patches](docs/BLUETTI.md); read-only BMS_BLE-HA 2.17.0; native Aranet.
+* Pinned Meshtastic v0.6.1 and a small HA companion, disabled until configured. Private bounded GPS/encounter SQLite; no additional daemon or BLE client.
 
-No MQTT, databases, dashboards or automation servers beyond HA are installed. No unattended updates. No device output automations: AC/DC controls are deliberate manual actions.
+No MQTT or automation servers beyond HA are installed. No unattended updates. AC/DC dashboard controls are deliberate manual actions; optional mesh AC commands require verified keys and confirmation. **No SDR is required or started**: fridge sensors and ADS-B remain future work.
 
 ## Network behaviour
 
@@ -45,6 +47,7 @@ There is **no AP/client concurrency and no NAT**. The local WLAN deliberately su
 
 * [Installation](docs/INSTALL.md) · [research and version pins](docs/RESEARCH.md)
 * [Dashboard/entity mapping](docs/DASHBOARD.md) · [resource limits](docs/RESOURCES.md)
+* [Meshtastic/GPS/authorised commands](docs/MESHTASTIC.md)
 * [Updates/rollback](docs/UPDATES.md) · [backup/rebuild](docs/BACKUP-RESTORE.md)
 * [Troubleshooting](docs/TROUBLESHOOTING.md) · [future rtl_433](docs/RTL433.md)
 * [Test results and hardware checklist](docs/TESTING.md) · [privacy](docs/PRIVACY.md)

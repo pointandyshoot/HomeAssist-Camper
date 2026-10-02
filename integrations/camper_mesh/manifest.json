@@ -1,0 +1,10 @@
+{
+  "domain": "camper_mesh",
+  "name": "Camper Mesh",
+  "version": "1.0.0",
+  "documentation": "https://github.com/pointandyshoot/HomeAssist-Camper/blob/main/docs/MESHTASTIC.md",
+  "iot_class": "local_push",
+  "after_dependencies": ["meshtastic", "sensor"],
+  "requirements": [],
+  "codeowners": []
+}

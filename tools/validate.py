@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Public-tree YAML/include/link/secret guard. Complements manual diff review."""
 import ast
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -46,9 +47,9 @@ def main():
     ]
     for relative in files:
         path = ROOT / relative
-        if relative.name in ('.env', 'secrets.yaml', 'config.json') or any(
+        if relative.name in ('.env', 'secrets.yaml', 'config.json', 'camper_mesh.json') or any(
             part in ('.storage', 'custom_components', 'backups', 'private', 'runtime') for part in relative.parts
-        ) or path.suffix in ('.db', '.so', '.key', '.pem', '.zip', '.gpg', '.age'):
+        ) or path.suffix in ('.db', '.sqlite', '.so', '.key', '.pem', '.zip', '.gpg', '.age'):
             failures.append(f'{relative}: forbidden private/generated path')
             continue
         if not path.is_file():
@@ -75,6 +76,11 @@ def main():
                 ast.parse(content)
             except SyntaxError:
                 failures.append(f'{relative}: Python syntax error')
+        if path.suffix == '.json':
+            try:
+                json.loads(content)
+            except ValueError:
+                failures.append(f'{relative}: JSON syntax error')
         if path.suffix == '.md':
             for target in re.findall(r'\]\(([^)]+)\)', content):
                 if ':' not in target and not target.startswith('#') and not (path.parent / target.split('#')[0]).exists():

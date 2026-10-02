@@ -1,0 +1,12 @@
+history:
+  name: Private mesh history
+  description: Return bounded encounter and GPS history to an authenticated Home Assistant client.
+  fields:
+    limit:
+      name: Row limit
+      default: 200
+      selector:
+        number:
+          min: 1
+          max: 500
+          mode: box

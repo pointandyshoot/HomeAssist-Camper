@@ -43,7 +43,10 @@ In Settings → Devices & services:
 2. Add **BLUETTI**, perform OAuth while online, bind/select Elite 200 V2 and choose **Bluetooth Control**. Use 30 or 60 s polling, default timeout/retries. See BLUETTI.md for mandatory cache audit.
 3. Add native **Aranet** after enabling its Smart Home setting.
 4. Add **BLE Battery Management System**. Select the locally discovered SmartBat device; confirm Offgridtec/OGT detection. No BMS controls should exist.
-5. Map/rename entities using DASHBOARD.md. Select Camper in the sidebar and optionally make it the default dashboard on the phone.
+5. Map/rename entities using DASHBOARD.md. Camper is the default `/lovelace` dashboard; update previously saved phone shortcuts if needed.
+6. Optionally add Meshtastic over **Bluetooth** for the dedicated T1000-E. Follow MESHTASTIC.md to verify and privately authorise your other two radios. The root-only mesh example is already installed disabled; real keys/IDs go only in `/opt/camper-ha/config/camper_mesh.json`.
+
+No SDR needs to be attached: there is no USB device mapping, rtl_433 service or MQTT dependency. The future fridge placeholder remains visible. ADS-B is deferred.
 
 HA may download integration Python requirements during first setup. Keep Starlink available until all integrations have loaded and supplied real data. Backup the private config afterwards, then perform the offline cold-boot/reload checks in TESTING.md.
 

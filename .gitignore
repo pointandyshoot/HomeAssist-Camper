@@ -29,3 +29,5 @@ homeassistant/media/
 homeassistant/blueprints/
 homeassistant/known_devices.yaml
 homeassistant/ip_bans.yaml
+**/camper_mesh.json
+**/*.sqlite*

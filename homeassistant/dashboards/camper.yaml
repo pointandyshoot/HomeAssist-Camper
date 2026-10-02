@@ -9,6 +9,45 @@ views:
           ## Camper
           Live data and history work locally. Unavailable values need pairing,
           verified entity mapping or device support. Never interpret unavailable as zero.
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.camper_bluetti_soc
+            name: BLUETTI battery
+            min: 0
+            max: 100
+            severity: {red: 0, yellow: 20, green: 50}
+          - type: gauge
+            entity: sensor.camper_co2
+            name: CO₂ (ppm)
+            min: 400
+            max: 2500
+            severity: {green: 400, yellow: 1000, red: 1500}
+      - type: horizontal-stack
+        cards:
+          - type: button
+            entity: switch.camper_bluetti_ac
+            name: AC output
+            tap_action:
+              action: toggle
+              confirmation:
+                text: Change AC output power? Check that the Pi has independent power.
+          - type: button
+            entity: switch.camper_bluetti_dc
+            name: DC output
+            tap_action:
+              action: toggle
+              confirmation:
+                text: Change DC output power? Check that the Pi has independent power.
+      - type: entities
+        title: Mesh access
+        show_header_toggle: false
+        entities:
+          - sensor.camper_mesh_status
+          - sensor.camper_mesh_gps
+          - sensor.camper_mesh_last_command
       - type: entities
         title: BLUETTI
         show_header_toggle: false
@@ -29,22 +68,6 @@ views:
             name: Remaining discharge time
           - entity: sensor.camper_bluetti_charge_time
             name: Remaining charge time
-      - type: horizontal-stack
-        cards:
-          - type: button
-            entity: switch.camper_bluetti_ac
-            name: AC output
-            tap_action:
-              action: toggle
-              confirmation:
-                text: Change AC output power?
-          - type: button
-            entity: switch.camper_bluetti_dc
-            name: DC output
-            tap_action:
-              action: toggle
-              confirmation:
-                text: Change DC output power? Check that the Pi has independent power.
       - type: history-graph
         title: Battery SOC — 12 h
         hours_to_show: 12
@@ -90,6 +113,27 @@ views:
           Add verified rtl_433 entities `sensor.camper_fridge_temperature` and
           `sensor.camper_freezer_temperature` here, then a 12 h history graph.
           No receiver or MQTT service is started in this version.
+  - title: Mesh
+    path: mesh
+    icon: mdi:radio-handheld
+    cards:
+      - type: entities
+        title: Camper radio
+        show_header_toggle: false
+        entities:
+          - sensor.camper_mesh_status
+          - sensor.camper_mesh_gps
+          - sensor.camper_mesh_nodes
+          - sensor.camper_mesh_repeat_encounters
+          - sensor.camper_mesh_last_command
+          - sensor.camper_mesh_dropped_packets
+      - type: custom:camper-mesh-card
+      - type: markdown
+        content: >-
+          Send a **direct message** to the camper radio: `status`, `ac on`,
+          or `ac off`. AC requests need `confirm TOKEN` within 90 seconds.
+          Only the two configured radios with verified public keys can command it.
+          AC mesh control starts disabled. See the repository's MESHTASTIC.md.
   - title: Pi health
     path: health
     icon: mdi:raspberry-pi

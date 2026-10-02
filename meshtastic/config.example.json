@@ -1,0 +1,17 @@
+{
+  "enabled": false,
+  "gateway_node": "REPLACE_WITH_CAMPER_NODE_ID",
+  "authorised_radios": [
+    {"node": "REPLACE_WITH_PORTABLE_1_NODE_ID", "public_key": "REPLACE_WITH_VERIFIED_BASE64_PUBLIC_KEY"},
+    {"node": "REPLACE_WITH_PORTABLE_2_NODE_ID", "public_key": "REPLACE_WITH_VERIFIED_BASE64_PUBLIC_KEY"}
+  ],
+  "ac_control_enabled": false,
+  "independent_pi_power_confirmed": false,
+  "ac_switch": "switch.camper_bluetti_ac",
+  "soc_sensor": "sensor.camper_bluetti_soc",
+  "input_sensors": ["sensor.camper_bluetti_ac_input", "sensor.camper_bluetti_dc_input"],
+  "output_sensors": ["sensor.camper_bluetti_ac_output", "sensor.camper_bluetti_dc_output"],
+  "telemetry_max_age_seconds": 180,
+  "gps_max_age_seconds": 300,
+  "history_days": 90
+}

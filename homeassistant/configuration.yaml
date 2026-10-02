@@ -3,7 +3,7 @@ homeassistant:
   name: Camper
   time_zone: !secret time_zone
   unit_system: metric
-  # Locations/person tracking are not part of this system.
+  # Mesh GPS stays in a separate private, bounded datastore on the Pi.
 frontend:
 config:
 api:
@@ -13,6 +13,7 @@ mobile_app:
 bluetooth:
 zeroconf:
 history:
+camper_mesh:
 recorder:
   purge_keep_days: 7
   commit_interval: 30
@@ -21,7 +22,7 @@ recorder:
   include:
     domains: [sensor, binary_sensor, switch]
   exclude:
-    entity_globs: ['sensor.*_rssi', 'sensor.*_link_quality', 'sensor.*_signal_strength']
+    entity_globs: ['sensor.*_rssi', 'sensor.*_link_quality', 'sensor.*_signal_strength', 'sensor.camper_mesh_*', 'sensor.meshtastic_*']
 logger:
   default: warning
 automation: !include automations.yaml
@@ -37,9 +38,12 @@ command_line:
       value_template: '{{ value_json.memory_percent }}'
       json_attributes: [load_per_core, disk_percent, cpu_temperature, ha_health, sampled_at]
 lovelace:
-  mode: storage
+  resource_mode: yaml
+  resources:
+    - url: /local/camper-mesh-card.js?v=1
+      type: module
   dashboards:
-    camper-dashboard:
+    lovelace:
       mode: yaml
       title: Camper
       icon: mdi:van-utility

@@ -1,8 +1,10 @@
 # Dashboard and entity mapping
 
-The built-in YAML dashboard uses ordinary entities/history cards; no custom frontend, external fonts or downloaded chart service. It works offline once the HA frontend has loaded. Actual driver IDs contain serial numbers or BLE suffixes, so the project uses generic aliases.
+The mobile YAML **Camper** dashboard is the default at `/lovelace`: battery and CO₂ gauges, BLUETTI input/output/runtime and confirmed AC/DC buttons, SmartBat read-only readings, environment/history, a Mesh tab and Pi health. It uses built-in cards plus one small local mesh card with no external fonts, map tiles or chart service. It works offline once the HA frontend has loaded. Actual driver IDs contain serial numbers or BLE suffixes, so the project uses generic aliases.
 
-After integration setup, open Settings → Devices & services → entity → settings and change **entity ID** to the corresponding generic ID. Confirm the source and units, not just similar names. Do not rename hardware or post a real entity registry to GitHub. Every integration sensor is retained by the Recorder's sensor include, even if not in this table.
+Fresh installations get the default automatically. Existing HA users/app shortcuts may retain a previously selected dashboard: open `/lovelace`, select Camper in your profile/sidebar or change your app's saved path. For existing deployments, use UPDATES.md's migration instructions; bootstrap preserves existing YAML. The fridge section is an explanatory placeholder: no absent sensor/receiver is needed to load the dashboard. Unsupported live sensor rows remain unavailable until commissioning, never fabricated zeros.
+
+After integration setup, open Settings → Devices & services → entity → settings and change **entity ID** to the corresponding generic ID. Confirm the source and units, not just similar names. Do not rename hardware or post a real entity registry to GitHub. Battery/environment sensors are retained by the Recorder's sensor include, even if not in this table. Mesh history is kept separately and privately; see MESHTASTIC.md for recorder exclusions.
 
 | Verified source | Generic entity ID |
 |---|---|

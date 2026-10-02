@@ -8,12 +8,15 @@ import subprocess
 import tempfile
 
 from bluetti_patch import patch
+from meshtastic_patch import patch as patch_meshtastic
 
 PINS = {
     "bluetti": ("https://github.com/bluetti-official/bluetti-home-assistant.git",
                 "v1.0.5", "f1df72b9642ebb60cb1c56100f2ad3c3a5b60157"),
     "bms_ble": ("https://github.com/patman15/BMS_BLE-HA.git",
                 "2.17.0", "23ba216aea103220be2fc66ba3fe21092391219b"),
+    "meshtastic": ("https://github.com/meshtastic/home-assistant.git",
+                   "v0.6.1", "b641e747c17dc03aec3ef4d020b6573bff3d71d1"),
 }
 
 
@@ -32,6 +35,8 @@ def install(name, config):
         component = repo / "custom_components" / name
         if name == "bluetti":
             patch(component)
+        elif name == "meshtastic":
+            patch_meshtastic(component)
         # Retain original upstream licence with downloaded component.
         shutil.copyfile(repo / "LICENSE", component / "UPSTREAM-LICENSE")
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -41,6 +46,24 @@ def install(name, config):
         shutil.copytree(component, stage)
         stage.rename(target)
     print(f"Installed {name} pinned to {sha[:12]}")
+
+
+def install_companion(config):
+    root = Path(__file__).resolve().parents[1]
+    target = config / "custom_components/camper_mesh"
+    if not target.exists():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        stage = target.with_name("camper_mesh.installing")
+        if stage.exists():
+            shutil.rmtree(stage)
+        shutil.copytree(root / "integrations/camper_mesh", stage, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        stage.rename(target)
+    else:
+        print("Preserving existing camper_mesh; update explicitly after backup")
+    # Public frontend code only; coordinates are never written in www.
+    from install import copy_missing
+    copy_missing(root / "frontend/camper-mesh-card.js", config / "www/camper-mesh-card.js", 0o644)
+    copy_missing(root / "meshtastic/config.example.json", config / "camper_mesh.json")
 
 
 def audit(config):
@@ -95,5 +118,6 @@ if __name__ == "__main__":
     if args.action == "install":
         for name in PINS:
             install(name, args.config)
+        install_companion(args.config)
     else:
         audit(args.config)
