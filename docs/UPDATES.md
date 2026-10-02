@@ -56,3 +56,19 @@ Network/controller updates must preserve AP/STA UUIDs or explicitly migrate keyf
 ## Rollback
 
 Stop HA. Restore the full matching `/opt/camper-ha` private snapshot, including DB and old custom components. Restore the recorded old image (or private provisioned image snapshot), then `docker compose up -d --pull never`. Restore network JSON/keyfiles and old host scripts/units if these changed, reload NM profiles/units, then reboot. Never overwrite current databases without first preserving a private failure snapshot for diagnosis.
+
+## Add Meshtastic and make Camper the default on an existing installation
+
+Fresh installations already contain these files. Existing bootstrap runs preserve YAML, components and private keys, so they do not silently change your dashboard. Make a coherent private backup first, then from the updated checkout:
+
+```sh
+git pull --ff-only
+cd /opt/camper-ha
+sudo docker compose stop -t 90 homeassistant
+cd -  # return to the repository checkout
+sudo python3 tools/integrations.py install
+```
+
+Compare repository `homeassistant/configuration.yaml` and `homeassistant/dashboards/camper.yaml` with your private runtime versions. Merge the `camper_mesh:` block, Recorder mesh exclusions, and `lovelace` resource/default-dashboard block; copy/merge the revised dashboard deliberately. For an uncustomised original installation, after backup you can copy those two public YAML files to the corresponding `/opt/camper-ha/config` paths. Preserve `secrets.yaml`, `camper_mesh.json`, all `.storage` and databases. Never copy example keys over real private config. The installer copies disabled mesh config, authored companion and frontend code only when missing.
+
+Run the HA configuration checker as documented above, start HA online for dependency installation, then commission MESHTASTIC.md. If updating an already installed companion/card later, stop HA, save their old versions in private backup, move `custom_components/camper_mesh` outside that directory and `www/camper-mesh-card.js` aside privately, and rerun the integration installer. Upstream Meshtastic updates require tag/SHA/patch review as with BLUETTI. Do not upgrade past HA 2027.2 without resolving the pinned upstream serial dependency deprecation. Roll back the matching YAML/components/card/config snapshot together; clear the browser cache after reverting frontend code.

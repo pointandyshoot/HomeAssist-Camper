@@ -13,6 +13,7 @@ jobs:
         run: |
           python3 tools/validate.py
           python3 -m unittest discover -s tests -v
+          node --check frontend/camper-mesh-card.js
           shellcheck tools/*.sh
           docker compose --env-file .env.example config --quiet
           systemd-analyze verify --man=no networking/systemd/* tools/camper-metrics.service tools/camper-metrics.timer
@@ -23,6 +24,17 @@ jobs:
           BLUETTI_SOURCE="$RUNNER_TEMP/bluetti-source/custom_components/bluetti" python3 -m unittest discover -s tests -p test_bluetti_patch.py -v
       - name: Home Assistant configuration schemas
         run: |
+          git clone --depth 1 --branch v0.6.1 https://github.com/meshtastic/home-assistant.git "$RUNNER_TEMP/meshtastic-source"
+          test "$(git -C "$RUNNER_TEMP/meshtastic-source" rev-parse HEAD)" = b641e747c17dc03aec3ef4d020b6573bff3d71d1
+          cp -r "$RUNNER_TEMP/meshtastic-source/custom_components/meshtastic" "$RUNNER_TEMP/meshtastic-unpatched"
+          python3 tools/meshtastic_patch.py "$RUNNER_TEMP/meshtastic-source/custom_components/meshtastic"
           cp -r homeassistant "$RUNNER_TEMP/ha-config"
           cp homeassistant/secrets.example.yaml "$RUNNER_TEMP/ha-config/secrets.yaml"
+          mkdir -p "$RUNNER_TEMP/ha-config/custom_components" "$RUNNER_TEMP/ha-config/www"
+          cp -r integrations/camper_mesh "$RUNNER_TEMP/ha-config/custom_components/"
+          cp -r "$RUNNER_TEMP/meshtastic-source/custom_components/meshtastic" "$RUNNER_TEMP/ha-config/custom_components/"
+          cp frontend/camper-mesh-card.js "$RUNNER_TEMP/ha-config/www/"
           docker run --rm --platform linux/amd64 -v "$RUNNER_TEMP/ha-config:/config" ghcr.io/home-assistant/home-assistant:2026.9.4 python -m homeassistant --script check_config --config /config
+          docker run --rm --platform linux/amd64 -e MESHTASTIC_SOURCE=/upstream -v "$RUNNER_TEMP/meshtastic-unpatched:/upstream:ro" -v "$PWD:/project:ro" -w /project ghcr.io/home-assistant/home-assistant:2026.9.4 python -m unittest discover -s tests -p test_meshtastic_patch.py -v
+          docker run --rm --platform linux/amd64 -v "$RUNNER_TEMP/ha-config:/config" -v "$PWD:/project:ro" -w /project ghcr.io/home-assistant/home-assistant:2026.9.4 python tests/ha_mesh_check.py
+          docker run --rm --platform linux/amd64 -e PYTHONPATH=/config -v "$RUNNER_TEMP/ha-config:/config" ghcr.io/home-assistant/home-assistant:2026.9.4 python -c 'import custom_components.meshtastic.api; import custom_components.meshtastic.sensor; import custom_components.meshtastic.config_flow'

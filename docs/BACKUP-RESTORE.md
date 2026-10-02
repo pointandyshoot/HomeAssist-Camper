@@ -44,3 +44,5 @@ Mounted `/config` is not included by Docker commit, so **both** config backup an
 Use a tested full-card image/spare card. An archive plus public repo is not by itself a completely offline installer: OS APT packages, Docker image and custom integration requirements must already be available. This limitation is explicit; don't discover it at camp after the only SD has failed.
 
 Store private `dpkg-query -W`, OS version, HA image ID/digest and a copy of the public repo commit reference with each backup. Test recovery on another card before deleting an older known good backup.
+
+Meshtastic: the same stopped-HA backup includes private `config/camper_mesh.json`, `.storage/camper_mesh.sqlite`, both custom components, local card code and upstream node storage. Also keep private firmware/radio configuration exports and independently verified public-key pins for all three T1000-E devices off-card. After restore, validate the camper BLE pairing and both portable key pins; do not re-enable AC control until authenticated offline status/control and stale-value rejection are confirmed. Pending AC confirmations deliberately do not survive a restart/restore.

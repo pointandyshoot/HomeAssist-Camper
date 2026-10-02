@@ -14,7 +14,7 @@ Performed in an x86_64 development environment, with no Pi/batteries/SDR attache
 | systemd | `systemd-analyze verify` passed on identical unit copies with only the dnsmasq executable path adjusted to its extracted development binary. Default host paths/dependencies are checked in CI with dnsmasq-base and on the Pi. No watchdog/recovery unit was executed against a real systemd/NM host here. |
 | DHCP | dnsmasq 2.90 accepted the generated DHCP-only configuration using `--test`. No real lease/packet-routing test performed. |
 | Derived template | HA template engine computed 700 W from four known power readings and made availability false when an input was unavailable. |
-| Automated tests | **21 tests passed**, including four against actual pinned upstream BLUETTI source. No hardware/network radio was attached. |
+| Automated tests | **39 unit tests passed**, including four each against actual pinned BLUETTI and Meshtastic source. The native HA adapter check separately exercises response services, raw packet authentication, confirmation/control, replay, absent configuration/device behaviour and actual sensor-platform loading. No hardware/network radio was attached. |
 | Controller policy | Tests cover boot AP, dwell, failed association, unusable gateway, brief network, stable promotion, loss debounce/reset, backoff cap, failed AP retry, reboot and bounded command failure. NetworkManager/radio are simulated. |
 | Private provisioning | Tests reject missing/example secrets, reject newline injection, preserve existing installer files, enforce 0600 private output and render DHCP without router/DNS/shared mode. They exercise provisioning primitives, not a complete OS installation twice. |
 | BLUETTI patches | Exact v1.0.5 source accepted patches and compiled with Python 3.14. Tests execute patched cached-library and BLE setup paths using isolated boundaries; protocol retention and refusal to repatch changed source checked. No encryption/native-library/device exchange tested. |
@@ -51,3 +51,20 @@ Optional full upstream patch tests: fetch the exact v1.0.5 component into a temp
 - [ ] HA update and matching image/config/DB rollback rehearsed.
 
 The system is **not physically accepted until this checklist passes**. Outstanding hardware/firmware limits are explicit, rather than claimed tested from simulation.
+
+## Meshtastic and absent-SDR acceptance
+
+Software validation additionally checks both authorised keys, spoofed IDs/keys, missing PKI metadata, group/MQTT rejection, malformed payloads, expired/one-time confirmations, output enable flags, persistent replay records, position timestamps/source separation, retention and response limits, missing/disabled configuration, idempotent companion provisioning and USB-free Compose. Native HA schemas accept the default `lovelace` dashboard and companion; actual upstream API/sensor/config-flow imports are checked in the pinned HA environment. Frontend JavaScript syntax is checked. This does not simulate actual authenticated firmware decryption.
+
+- [ ] Boot with **no SDR and no Meshtastic radio**: HA/dashboard/battery/environment/history usable; fridge placeholder visible; mesh status unavailable/not configured. No receiver/broker startup failure or USB dependency.
+- [ ] Pair camper T1000-E privately and maintain persistent BLE with the phone app disconnected. Power radio off/on and reboot Pi offline: upstream reconnects, history remains readable.
+- [ ] Verify accurate Pi clock offline after cold boot. Confirm GPS LOC_INTERNAL/time/precision fields; own GPS and route work, stale/future/fixed coordinates do not become new GPS fixes.
+- [ ] Fresh direct `status` works from each portable radio with no Starlink; an unauthorised radio, spoofed sender ID/key, missing PKI and group-channel message cannot command or obtain a reply. Confirm firmware exposes authenticated packet metadata as required.
+- [ ] Verify secure replies with destination key changes/missing keys; no legacy channel fallback. Update private pins only after independent verification.
+- [ ] With safe independent Pi power and a test load, enable both private flags. `ac off` alone does nothing; correct same-radio confirmation executes once; wrong sender/token, expired challenge, replay or HA restart cannot repeat AC switching. Observe AC socket and HA state, not just radio acknowledgement.
+- [ ] BLUETTI unavailable/stale means no output write; loss of mesh does not stop other integrations. LoRa loss/timeout is reported without automatic switching retries.
+- [ ] Test repeated encounters across a 30-minute gap, direct/relayed labels and separate camper/reported positions on the offline coordinate map. Cached boot nodes are not new encounters. Confirm no coordinate export in www or Recorder.
+- [ ] Exercise all four onboard BLE integrations and Wi-Fi transitions for 24 hours, including private history pruning and mobile browsing; measure RAM/zram/SD activity and reconnect latency.
+- [ ] Restore private mesh history/ACL/radio backups and repeat both-key offline tests before re-enabling AC control.
+
+ADS-B is not implemented or required by these checks. No physical radio/SDR/Pi was available; retain these outstanding tests with the main commissioning checklist.
